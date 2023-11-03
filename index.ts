@@ -35,6 +35,7 @@ export declare class SwellRequest {
   accessToken?: string | null;
   publicKey?: string | null;
   store: SwellStore;
+  session?: { [key: string]: any };
   apiHost: string;
   logParams?: object;
   swell: SwellAPI;

@@ -5,9 +5,9 @@ TypeScript bindings for Swell Apps.
 ## Install
 
 ```bash
-npm install --dev @swell/app-types
+npm install @swell/app-types -D
 -- Or
-yarn add --dev @swell/app-types
+yarn add @swell/app-types -D
 ```
 
 ## Usage

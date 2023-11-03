@@ -38,8 +38,8 @@ export declare class SwellRequest {
   apiHost: string;
   logParams?: object;
   swell: SwellAPI;
-  body: object;
-  data: object;
+  body: { [key: string]: any };
+  data: { [key: string]: any };
   query: { [key: string]: string };
 
   constructor(originalRequest: Request, context: any);

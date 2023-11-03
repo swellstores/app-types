@@ -1,6 +1,6 @@
 {
   "name": "@swell/app-types",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "TypeScript bindings for Swell Apps",
   "author": "Swell",
   "repository": {

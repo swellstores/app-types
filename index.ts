@@ -2,14 +2,14 @@ export interface SwellConfig {
   description?: string;
   route?: {
     public?: boolean;
-    methods?: [string];
+    methods?: [string, ...string[]];
     headers?: { [key: string]: string };
     cache?: {
       timeout?: number;
     };
   };
   model?: {
-    events: [string];
+    events: [string, ...string[]];
     conditions?: object;
     schedule?: {
       formula: string;

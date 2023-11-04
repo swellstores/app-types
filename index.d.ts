@@ -2,14 +2,14 @@ interface SwellConfig {
   description?: string;
   route?: {
     public?: boolean;
-    methods?: [string];
+    methods?: [string, ...string[]];
     headers?: { [key: string]: string };
     cache?: {
       timeout?: number;
     };
   };
   model?: {
-    events: [string];
+    events: [string, ...string[]];
     conditions?: object;
     schedule?: {
       formula: string;
@@ -36,7 +36,7 @@ declare class SwellRequest {
   headers: Headers;
   referrer: string | undefined;
   credentials: string | undefined;
-  
+
   appId?: string | null;
   storeId?: string | null;
   accessToken?: string | null;

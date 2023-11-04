@@ -30,6 +30,13 @@ interface SwellStore {
 declare class SwellRequest {
   originalRequest: Request;
   context: any;
+
+  url: string;
+  method: string;
+  headers: Headers;
+  referrer: string | undefined;
+  credentials: string | undefined;
+  
   appId?: string | null;
   storeId?: string | null;
   accessToken?: string | null;

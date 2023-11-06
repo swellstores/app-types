@@ -46,8 +46,8 @@ declare class SwellRequest {
   apiHost: string;
   logParams?: object;
   swell: SwellAPI;
-  body: { [key: string]: any };
-  data: { [key: string]: any };
+  body: SwellData;
+  data: SwellData;
   query: { [key: string]: string };
 
   constructor(originalRequest: Request, context: any);
@@ -60,6 +60,14 @@ declare class SwellRequest {
 }
 
 type SwellRequestMethod = "get" | "put" | "post" | "delete";
+
+interface SwellData {
+  [key: string]: any;
+}
+
+interface SwellSettings {
+  [key: string]: any;
+}
 
 declare class SwellAPI {
   request: SwellRequest;
@@ -85,9 +93,9 @@ declare class SwellAPI {
 
   post(url: string, data: any): Promise<any>;
 
-  delete(url: string): Promise<any>;
+  delete(url: string, data: any): Promise<any>;
 
-  settings(id?: string): Promise<object>;
+  settings(id?: string): Promise<SwellSettings>;
 }
 
 interface SwellErrorOptions {

@@ -55,8 +55,6 @@ export declare class SwellRequest {
   initialize(): Promise<void>;
 
   parseJson(input: string): object;
-
-  ingestLogs(response: Response): Promise<void>;
 }
 
 export type SwellRequestMethod = "get" | "put" | "post" | "delete";

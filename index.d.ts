@@ -1,5 +1,6 @@
 interface SwellConfig {
   description?: string;
+  extension?: string;
   route?: {
     public?: boolean;
     methods?: [string, ...string[]];
@@ -15,6 +16,8 @@ interface SwellConfig {
       formula: string;
     };
     sequence?: number;
+    fields?: [string, ...string[]];
+    compatibilities?: [string, ...string[]];
   };
   cron?: {
     schedule: string;

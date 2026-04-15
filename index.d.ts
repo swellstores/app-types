@@ -22,11 +22,6 @@ interface SwellConfig {
   cron?: {
     schedule: string;
   };
-  /**
-   * Max time in ms to wait for the function worker to respond. 1000–20000.
-   * Default 10000. Values above 10000 require the `functions.long_timeout`
-   * feature.
-   */
   timeout?: number;
 }
 

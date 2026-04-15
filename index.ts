@@ -22,6 +22,7 @@ export interface SwellConfig {
   cron?: {
     schedule: string;
   };
+  timeout?: number;
 }
 
 export interface SwellStore {

@@ -3,7 +3,7 @@ interface SwellConfig {
   extension?: string;
   route?: {
     public?: boolean;
-    methods?: [string, ...string[]];
+    methods?: [SwellRequestMethod, ...SwellRequestMethod[]];
     headers?: { [key: string]: string };
     cache?: {
       timeout?: number;
@@ -97,7 +97,7 @@ declare class SwellAPI {
 
   post(url: string, data: any): Promise<any>;
 
-  delete(url: string, data: any): Promise<any>;
+  delete(url: string, data?: any): Promise<any>;
 
   settings(id?: string): Promise<SwellSettings>;
 }

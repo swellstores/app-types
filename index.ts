@@ -125,3 +125,10 @@ export declare class SwellResponse extends Response {
     options?: SwellResponseOptions
   );
 }
+
+export type SwellHandlerResult = Response | SwellData | string | void;
+
+export type SwellHandler = (
+  req: SwellRequest,
+  context?: any
+) => SwellHandlerResult | Promise<SwellHandlerResult>;

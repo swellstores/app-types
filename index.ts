@@ -3,7 +3,7 @@ export interface SwellConfig {
   extension?: string;
   route?: {
     public?: boolean;
-    methods?: [string, ...string[]];
+    methods?: [SwellRequestMethod, ...SwellRequestMethod[]];
     headers?: { [key: string]: string };
     cache?: {
       timeout?: number;
@@ -97,7 +97,7 @@ export declare class SwellAPI {
 
   post(url: string, data: any): Promise<any>;
 
-  delete(url: string, data: any): Promise<any>;
+  delete(url: string, data?: any): Promise<any>;
 
   settings(id?: string): Promise<SwellSettings>;
 }
@@ -125,3 +125,10 @@ export declare class SwellResponse extends Response {
     options?: SwellResponseOptions
   );
 }
+
+export type SwellHandlerResult = Response | SwellData | string | void;
+
+export type SwellHandler = (
+  req: SwellRequest,
+  context?: any
+) => SwellHandlerResult | Promise<SwellHandlerResult>;

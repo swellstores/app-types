@@ -41,6 +41,11 @@ declare class SwellRequest {
   referrer: string | undefined;
   credentials: string | undefined;
 
+  /**
+   * The slug-form identifier for this app (e.g. `"klaviyo"`), matching keys
+   * in `record.$app[...]`. Derived from the app's private_id with the leading
+   * underscore stripped.
+   */
   appId?: string | null;
   storeId?: string | null;
   accessToken?: string | null;

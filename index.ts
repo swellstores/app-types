@@ -4,7 +4,7 @@ export interface SwellConfig {
   route?: {
     public?: boolean;
     methods?: [SwellRequestMethod, ...SwellRequestMethod[]];
-    headers?: { [key: string]: string };
+    headers?: string[];
     cache?: {
       timeout?: number;
     };
@@ -50,7 +50,9 @@ export declare class SwellRequest {
   apiHost: string;
   logParams?: object;
   swell: SwellAPI;
-  body: SwellData;
+  body: SwellData | string;
+  /** Raw body text; use for HMAC/webhook signature verification. */
+  rawBody: string;
   data: SwellData;
   query: { [key: string]: string };
 
@@ -60,7 +62,11 @@ export declare class SwellRequest {
 
   parseJson(input: string): object;
 
-  appValues(idOrValues: object | string, values?: object): object | undefined;
+  appValues(values: object): { $app: { [appId: string]: object } };
+  appValues(
+    appId: string,
+    values: object
+  ): { $app: { [appId: string]: object } };
 }
 
 export type SwellRequestMethod = "get" | "put" | "post" | "delete";
@@ -110,6 +116,7 @@ export interface SwellErrorOptions {
 
 export declare class SwellError extends Error {
   status: number;
+  body?: unknown;
 
   constructor(message: string | object, options?: SwellErrorOptions);
 }

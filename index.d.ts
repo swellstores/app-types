@@ -4,7 +4,7 @@ interface SwellConfig {
   route?: {
     public?: boolean;
     methods?: [SwellRequestMethod, ...SwellRequestMethod[]];
-    headers?: { [key: string]: string };
+    headers?: string[];
     cache?: {
       timeout?: number;
     };
@@ -41,11 +41,7 @@ declare class SwellRequest {
   referrer: string | undefined;
   credentials: string | undefined;
 
-  /**
-   * The slug-form identifier for this app (e.g. `"klaviyo"`), matching keys
-   * in `record.$app[...]`. Derived from the app's private_id with the leading
-   * underscore stripped.
-   */
+  /** Slug-form app id (e.g. `"klaviyo"`); matches keys in `record.$app[...]`. */
   appId?: string | null;
   storeId?: string | null;
   accessToken?: string | null;
@@ -55,7 +51,9 @@ declare class SwellRequest {
   apiHost: string;
   logParams?: object;
   swell: SwellAPI;
-  body: SwellData;
+  body: SwellData | string;
+  /** Raw body text; use for HMAC/webhook signature verification. */
+  rawBody: string;
   data: SwellData;
   query: { [key: string]: string };
 
@@ -65,7 +63,11 @@ declare class SwellRequest {
 
   parseJson(input: string): object;
 
-  appValues(idOrValues: object | string, values?: object): object | undefined;
+  appValues(values: object): { $app: { [appId: string]: object } };
+  appValues(
+    appId: string,
+    values: object
+  ): { $app: { [appId: string]: object } };
 }
 
 type SwellRequestMethod = "get" | "put" | "post" | "delete";
@@ -115,6 +117,7 @@ interface SwellErrorOptions {
 
 declare class SwellError extends Error {
   status: number;
+  body?: unknown;
 
   constructor(message: string | object, options?: SwellErrorOptions);
 }

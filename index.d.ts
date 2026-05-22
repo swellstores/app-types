@@ -1,4 +1,7 @@
-interface SwellConfig {
+type SwellConfig = SwellFunctionConfig | SwellWorkflowConfig;
+
+interface SwellFunctionConfig {
+  kind?: "function";
   description?: string;
   extension?: string;
   route?: {
@@ -23,6 +26,16 @@ interface SwellConfig {
     schedule: string;
   };
   timeout?: number;
+}
+
+interface SwellWorkflowConfig {
+  kind: "workflow";
+  description?: string;
+  route?: never;
+  model?: never;
+  cron?: never;
+  extension?: never;
+  timeout?: never;
 }
 
 interface SwellStore {
@@ -107,6 +120,71 @@ declare class SwellAPI {
   delete(url: string, data?: any): Promise<any>;
 
   settings(id?: string): Promise<SwellSettings>;
+
+  workflows: SwellWorkflowsAPI;
+}
+
+interface SwellWorkflowsAPI {
+  create(
+    workflowName: string,
+    params?: unknown
+  ): Promise<SwellWorkflowCreateResult>;
+}
+
+interface SwellWorkflowCreateResult {
+  id: string;
+  status: "active";
+}
+
+interface SwellWorkflowRequest {
+  id: string;
+  appId: string;
+  store: {
+    id: string;
+    admin_url?: string;
+    url?: string;
+  };
+  data: unknown;
+  workflow: {
+    workflow_id: string;
+    workflow_name: string;
+    workflow_instance_id: string;
+    trigger: "function";
+    request_id: string;
+  };
+  isLocalDev: false;
+  swell: SwellWorkflowAPI;
+}
+
+interface SwellWorkflowAPI {
+  get(path: string, data?: unknown): Promise<unknown>;
+  post(path: string, data?: unknown): Promise<unknown>;
+  put(path: string, data?: unknown): Promise<unknown>;
+  delete(path: string, data?: unknown): Promise<unknown>;
+  settings(): Promise<SwellSettings>;
+}
+
+interface SwellWorkflowStep {
+  do<T>(
+    name: string,
+    options: SwellWorkflowStepOptions,
+    callback: () => Promise<T>
+  ): Promise<T>;
+
+  do<T>(name: string, callback: () => Promise<T>): Promise<T>;
+
+  sleep(name: string, duration: string | number): Promise<void>;
+
+  sleepUntil(name: string, date: Date | string | number): Promise<void>;
+}
+
+interface SwellWorkflowStepOptions {
+  retries?: {
+    limit: number;
+    delay: string | number;
+    backoff?: "constant" | "linear" | "exponential";
+  };
+  timeout?: string | number;
 }
 
 interface SwellErrorOptions {

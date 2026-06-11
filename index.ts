@@ -120,6 +120,12 @@ export declare class SwellAPI {
 
   settings(id?: string): Promise<SwellSettings>;
 
+  /** Atomic multi-operation write (POST /:transaction). Max 10 operations; rolls back entirely if any fails. */
+  transaction(
+    ops: Array<{ method: SwellRequestMethod; url: string; data?: any }>,
+    options?: { retry?: boolean }
+  ): Promise<any>;
+
   workflows: SwellWorkflowsAPI;
 }
 
@@ -190,6 +196,8 @@ export interface SwellErrorOptions {
   method?: string;
   endpointUrl?: string;
   status?: number;
+  /** Set false on event-triggered functions to record the failure without scheduling further retries. */
+  retry?: boolean;
 }
 
 export declare class SwellError extends Error {

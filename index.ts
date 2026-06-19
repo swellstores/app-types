@@ -15,6 +15,7 @@ export interface SwellFunctionConfig {
   model?: {
     events: [string, ...string[]];
     conditions?: object;
+    hook_reject_error?: boolean;
     schedule?: {
       formula: string;
     };

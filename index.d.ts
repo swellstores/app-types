@@ -15,7 +15,6 @@ interface SwellFunctionConfig {
   model?: {
     events: [string, ...string[]];
     conditions?: object;
-    hook_reject_error?: boolean;
     schedule?: {
       formula: string;
     };
@@ -80,8 +79,14 @@ declare class SwellRequest {
   appValues(values: object): { $app: { [appId: string]: object } };
   appValues(
     appId: string,
-    values: object
+    values: object,
   ): { $app: { [appId: string]: object } };
+
+  reject(
+    code: string,
+    message: string,
+    options?: SwellRejectOptions,
+  ): SwellRejection;
 }
 
 type SwellRequestMethod = "get" | "put" | "post" | "delete";
@@ -109,7 +114,7 @@ declare class SwellAPI {
   makeRequest(
     method: SwellRequestMethod,
     url: string,
-    data?: any
+    data?: any,
   ): Promise<any>;
 
   get(url: string, query?: any): Promise<any>;
@@ -125,7 +130,7 @@ declare class SwellAPI {
   /** Atomic multi-operation write (POST /:transaction). Max 10 operations; rolls back entirely if any fails. */
   transaction(
     ops: Array<{ method: SwellRequestMethod; url: string; data?: any }>,
-    options?: { retry?: boolean }
+    options?: { retry?: boolean },
   ): Promise<any>;
 
   workflows: SwellWorkflowsAPI;
@@ -134,7 +139,7 @@ declare class SwellAPI {
 interface SwellWorkflowsAPI {
   create(
     workflowName: string,
-    params?: unknown
+    params?: unknown,
   ): Promise<SwellWorkflowCreateResult>;
 }
 
@@ -175,7 +180,7 @@ interface SwellWorkflowStep {
   do<T>(
     name: string,
     options: SwellWorkflowStepOptions,
-    callback: () => Promise<T>
+    callback: () => Promise<T>,
   ): Promise<T>;
 
   do<T>(name: string, callback: () => Promise<T>): Promise<T>;
@@ -202,11 +207,29 @@ interface SwellErrorOptions {
   retry?: boolean;
 }
 
+interface SwellRejectOptions {
+  status?: number;
+}
+
 declare class SwellError extends Error {
   status: number;
   body?: unknown;
 
   constructor(message: string | object, options?: SwellErrorOptions);
+}
+
+declare class SwellRejection extends Error {
+  status: number;
+  code: string;
+  body: {
+    $reject: {
+      code: string;
+      message: string;
+      status: number;
+    };
+  };
+
+  constructor(code: string, message: string, options?: SwellRejectOptions);
 }
 
 interface SwellResponseOptions extends ResponseInit {
@@ -217,7 +240,7 @@ interface SwellResponseOptions extends ResponseInit {
 declare class SwellResponse extends Response {
   constructor(
     data: string | object | undefined,
-    options?: SwellResponseOptions
+    options?: SwellResponseOptions,
   );
 }
 
@@ -225,5 +248,5 @@ type SwellHandlerResult = Response | SwellData | string | void;
 
 type SwellHandler = (
   req: SwellRequest,
-  context?: any
+  context?: any,
 ) => SwellHandlerResult | Promise<SwellHandlerResult>;

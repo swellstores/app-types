@@ -44,7 +44,7 @@ export interface SwellFunctionConfig {
    * Run by app actions in the Swell admin that name this function. Receives `req.data.$action` (see `SwellActionContext`);
    * return `{ message }` to show it to the admin user. Actions wait for the result, so keep them within `timeout`.
    */
-  action?: {};
+  action?: Record<string, never>;
   /** ms; 1000–10000 (default 10000). Values above 10000 (up to 20000) are platform-enabled and set outside this field. */
   timeout?: number;
 }
@@ -154,7 +154,9 @@ export interface SwellSettings {
 
 /**
  * Sent to `action` functions as `req.data.$action` when an admin user runs an app action.
- * Built by the platform from the installed app's action declaration, so it can be trusted.
+ * The platform sets `id`, `source`, `collection`/`settings` and `user_id` from the installed app's action declaration and the signed-in user.
+ * `record_id` and `selection` come from the admin user's request, so treat them as input: check that ids are record ids (e.g. `/^[0-9a-f]{24}$/i`) before using them in a URL path,
+ * and load the record from `collection` before acting on it.
  * Values entered in the action's `modal.fields` arrive at the top level of `req.data`.
  */
 export interface SwellActionContext {
@@ -162,13 +164,13 @@ export interface SwellActionContext {
   id: string;
   /** `settings`: a settings file's `actions`; `field`: a `type: "action"` field; `list`/`record`: a content view's `actions` or `extra_actions`; `bulk`: a list view's `bulk_actions` */
   source: "settings" | "field" | "list" | "record" | "bulk";
-  /** collection of the content model that declares the action (e.g. `products`); set for view and bulk actions, and for action fields in content files */
-  collection?: string | null;
-  /** name of the settings file that declares the action; set for settings actions and for action fields in settings files */
-  settings?: string | null;
-  /** record the action ran on; set for record actions and for action fields on a saved record */
-  record_id?: string | null;
-  /** records selected in the list; set for bulk actions */
+  /** collection of the content model that declares the action (e.g. `products`, or `apps/<app_id>/<name>` for app-owned collections); set unless the action is declared in a settings file */
+  collection?: string;
+  /** name of the settings file that declares the action; set for settings actions and settings action fields */
+  settings?: string;
+  /** record the action ran on; set for record actions and for action fields in content files. From the admin user's request: validate it before using it in a URL path, and load the record from `collection` before acting on it */
+  record_id?: string;
+  /** records selected in the list; set for bulk actions. From the admin user's request: treat the ids and query as input */
   selection?: {
     /** `true` when the user selected every record matching the list's search and filters */
     all: boolean;
@@ -176,11 +178,11 @@ export interface SwellActionContext {
     ids?: string[];
     /** record ids unchecked after selecting all, when `all` is `true` */
     except_ids?: string[];
-    /** number of selected records shown in the admin when the action ran (informational) */
-    count: number;
-    /** ready-to-use list query for the selected records; add your own `limit` and `page`, e.g. `req.swell.get("/products", { ...query, limit: 100, page })` */
+    /** number of selected records shown in the admin when the action ran (informational); `null` when unknown */
+    count: number | null;
+    /** list query for the selected records, from the admin user's request; already excludes `except_ids`, so use it as is and add your own `limit` and `page`, e.g. `req.swell.get("/products", { ...query, limit: 100, page })` */
     query: { [key: string]: any };
-  } | null;
+  };
   /** id of the admin user who ran the action */
   user_id: string;
 }

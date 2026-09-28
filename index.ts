@@ -143,6 +143,8 @@ export declare class SwellRequest {
 export type SwellRequestMethod = "get" | "put" | "post" | "delete";
 
 export interface SwellData {
+  /** set when an admin user runs an app action (`action` functions) */
+  $action?: SwellActionContext;
   [key: string]: any;
 }
 

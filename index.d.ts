@@ -260,7 +260,10 @@ interface SwellWorkflowRequest {
     admin_url?: string;
     url?: string;
   };
-  /** params passed to `workflows.create()`; for runs started by an app action, the action's `modal.fields` values and `$action` (see `SwellActionContext`) */
+  /**
+   * params passed to `workflows.create()`; for runs started by an app action, the action's `modal.fields` values and `$action` (see `SwellActionContext`).
+   * Functions can pass any params to `workflows.create()`, including `$action`, so only trust `$action` when `workflow.trigger` is `"action"`.
+   */
   data: unknown;
   workflow: {
     workflow_id: string;

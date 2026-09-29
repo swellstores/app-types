@@ -42,7 +42,8 @@ interface SwellFunctionConfig {
   };
   /**
    * Run by app actions in the Swell admin that name this function. Receives `req.data.$action` (see `SwellActionContext`);
-   * return `{ message }` to show it to the admin user. Actions wait for the result, so keep them within `timeout`.
+   * return `{ message }` to show it to the admin user. Actions wait for the result, so keep them within `timeout`;
+   * for longer work, name a workflow that sets `action` instead (see `SwellWorkflowConfig`).
    */
   action?: Record<string, never>;
   /** ms; 1000–10000 (default 10000). Values above 10000 (up to 20000) are platform-enabled and set outside this field. */
@@ -55,7 +56,11 @@ interface SwellWorkflowConfig {
   route?: never;
   model?: never;
   cron?: never;
-  action?: never;
+  /**
+   * Run by app actions in the Swell admin that name this workflow. Each action starts a run and returns right away;
+   * the run gets the action's `modal.fields` values and `$action` (see `SwellActionContext`) in `req.data`, and `req.workflow.trigger` is `"action"`.
+   */
+  action?: Record<string, never>;
   extension?: never;
   timeout?: never;
 }
@@ -153,7 +158,7 @@ interface SwellSettings {
 }
 
 /**
- * Sent to `action` functions as `req.data.$action` when an admin user runs an app action.
+ * Sent as `req.data.$action` when an admin user runs an app action: to `action` functions, and to the workflow runs that actions start.
  * The platform sets `id`, `source`, `collection`/`settings` and `user_id` from the installed app's action declaration and the signed-in user.
  * `record_id` and `selection` come from the admin user's request, so treat them as input: check that ids are record ids (e.g. `/^[0-9a-f]{24}$/i`) before using them in a URL path,
  * and load the record from `collection` before acting on it.
@@ -255,12 +260,14 @@ interface SwellWorkflowRequest {
     admin_url?: string;
     url?: string;
   };
+  /** params passed to `workflows.create()`; for runs started by an app action, the action's `modal.fields` values and `$action` (see `SwellActionContext`) */
   data: unknown;
   workflow: {
     workflow_id: string;
     workflow_name: string;
     workflow_instance_id: string;
-    trigger: "function";
+    /** `action` when an app action started the run; `function` when a function called `workflows.create()` */
+    trigger: "function" | "action";
     request_id: string;
   };
   isLocalDev: false;

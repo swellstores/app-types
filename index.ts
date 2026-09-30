@@ -179,13 +179,13 @@ export interface SwellActionContext {
   selection?: {
     /** `true` when the user selected every record matching the list's search and filters */
     all: boolean;
-    /** selected record ids, when `all` is `false` */
+    /** selected record ids, when `all` is `false`; informational, since `query` already selects them */
     ids?: string[];
-    /** record ids unchecked after selecting all, when `all` is `true` */
+    /** record ids unchecked after selecting all, when `all` is `true`; informational, since `query` already excludes them */
     except_ids?: string[];
     /** number of selected records shown in the admin when the action ran (informational); `null` when unknown */
     count: number | null;
-    /** list query for the selected records, from the admin user's request; already excludes `except_ids`, so use it as is and add your own `limit` and `page`, e.g. `req.swell.get("/products", { ...query, limit: 100, page })` */
+    /** always set: exactly the filter the admin's own bulk operations use for this selection (the list's search and filters, with the selected or unchecked ids in a top-level `$and`), without paging or sort. Pass it to `req.swell.get` as is with your own paging, e.g. `req.swell.get("/products", { ...query, limit: 100, page })` */
     query: { [key: string]: any };
   };
   /** id of the admin user who ran the action */

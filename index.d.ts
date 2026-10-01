@@ -44,8 +44,9 @@ interface SwellFunctionConfig {
    * Run by app actions in the Swell admin that name this function. Receives `req.data.$action` (see `SwellActionContext`);
    * return `{ message }` to show it to the admin user. Actions wait for the result, so keep them within `timeout`;
    * for longer work, name a workflow that sets `action` instead (see `SwellWorkflowConfig`).
+   * Set `action: true`; the object form is for options the trigger may get later.
    */
-  action?: Record<string, never>;
+  action?: true | Record<string, never>;
   /** ms; 1000–10000 (default 10000). Values above 10000 (up to 20000) are platform-enabled and set outside this field. */
   timeout?: number;
 }
@@ -59,8 +60,9 @@ interface SwellWorkflowConfig {
   /**
    * Run by app actions in the Swell admin that name this workflow. Each action starts a run and returns right away;
    * the run gets the action's `modal.fields` values and `$action` (see `SwellActionContext`) in `req.data`, and `req.workflow.trigger` is `"action"`.
+   * Set `action: true`; the object form is for options the trigger may get later.
    */
-  action?: Record<string, never>;
+  action?: true | Record<string, never>;
   extension?: never;
   timeout?: never;
 }

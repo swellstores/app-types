@@ -73,6 +73,22 @@ interface SwellStore {
   admin_url: string;
 }
 
+/**
+ * Platform context of a call made by one of this app's components
+ * (the `Swell-Context` header). The platform forwards the header only after
+ * verifying its signature, app and store.
+ */
+interface SwellContext {
+  appId: string;
+  installationId: string;
+  storeId: string;
+  /** The signed-in admin user the component runs for, or null */
+  storeUser: { storeId: string; userId: string } | null;
+  storefrontId?: string;
+  /** Where the calling component runs; 'admin' for admin content fields */
+  surface?: "admin" | "checkout" | "storefront";
+}
+
 /** Request context available in all function handlers */
 declare class SwellRequest {
   originalRequest: Request;
@@ -104,6 +120,13 @@ declare class SwellRequest {
   store: SwellStore;
   /** authenticated user (routes) */
   session?: { account_id?: string; [key: string]: any };
+  /**
+   * Set when one of this app's components made the call, otherwise null.
+   * Route functions called with it do not need `route.public`. Use
+   * `verifySwellContext` from `@swell/apps-sdk` when the function needs
+   * cryptographic proof itself.
+   */
+  swellContext: SwellContext | null;
   apiHost: string;
   logParams?: object;
   /** `true` when invoked via `swell app dev` local proxy; `false` in production. Useful for dev-only branches (mock external APIs, skip destructive writes) */

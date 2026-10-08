@@ -22,7 +22,7 @@ interface SwellFunctionConfig {
   model?: {
     /**
      * * async: `review.created`;
-     * * hook: `before:review.created` / `after:review.created`, or `apps/<app_id>/reviews/before:review.created` (fully qualified for app-own models)
+     * * hook: `before:review.created` / `after:review.created`
      */
     events: [string, ...string[]];
     /** MongoDB-style filter; may reference `$record`, `$data`, `$event`, `$settings`, `$formula` */

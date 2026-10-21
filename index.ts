@@ -73,6 +73,11 @@ export interface SwellStore {
   admin_url: string;
 }
 
+export interface SwellApp {
+  /** the app's page in the dashboard, in the environment of the request */
+  admin_url: string;
+}
+
 /**
  * Platform context of a call made by one of this app's components
  * (the `Swell-Context` header). The platform forwards the header only after
@@ -118,6 +123,7 @@ export declare class SwellRequest {
   accessToken?: string | null;
   publicKey?: string | null;
   store: SwellStore;
+  app: SwellApp;
   /** authenticated user (routes) */
   session?: { account_id?: string; [key: string]: any };
   /**
@@ -285,6 +291,7 @@ export interface SwellWorkflowRequest {
     admin_url?: string;
     url?: string;
   };
+  app: SwellApp;
   /**
    * params passed to `workflows.create()`; for runs started by an app action, the action's `modal.fields` values and `$action` (see `SwellActionContext`).
    * Functions can pass any params to `workflows.create()`, including `$action`, so only trust `$action` when `workflow.trigger` is `"action"`.

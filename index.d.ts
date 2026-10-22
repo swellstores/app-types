@@ -120,6 +120,8 @@ declare class SwellRequest {
   /** Slug-form app id (e.g. `"klaviyo"`); matches keys in `record.$app[...]`. */
   appId?: string | null;
   storeId?: string | null;
+  /** `"test"` in the test environment, null in live */
+  environmentId: string | null;
   accessToken?: string | null;
   publicKey?: string | null;
   store: SwellStore;
@@ -286,6 +288,8 @@ interface SwellWorkflowCreateResult {
 interface SwellWorkflowRequest {
   id: string;
   appId: string;
+  /** `"test"` in the test environment, null in live */
+  environmentId: string | null;
   store: {
     id: string;
     admin_url?: string;

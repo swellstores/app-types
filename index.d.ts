@@ -351,6 +351,8 @@ interface SwellErrorOptions {
   code?: string;
   /** Set false on event-triggered functions to record the failure without scheduling further retries. */
   retry?: boolean;
+  /** Seconds to put off the next call of an event-triggered function, up to 12 hours; it is never called sooner than its retry schedule. Sent as `Retry-After`. */
+  retryAfter?: number;
 }
 
 interface SwellRejectOptions {
@@ -361,7 +363,8 @@ interface SwellRejectOptions {
  * Thrown by `req.swell.*` on non-2xx responses (and on non-GET 2xx responses containing `errors`).
  * User code can also throw this to return error responses.
  * On event-triggered functions, throw with `retry: false` to record the failed delivery
- * (with its real status and message) without scheduling further retries.
+ * (with its real status and message) without scheduling further retries, or with
+ * `retryAfter` to put off the next call by that many seconds.
  */
 declare class SwellError extends Error {
   status: number;
@@ -370,6 +373,7 @@ declare class SwellError extends Error {
   /** stable error code from `options.code` or the response's `error.code` (e.g. `transaction_conflict`) */
   code?: string;
   retry?: boolean;
+  retryAfter?: number;
   /** `true` for `transaction_conflict` and `transaction_throttled` */
   readonly isRetryable: boolean;
 

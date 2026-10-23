@@ -1,5 +1,6 @@
 /**
  * Trigger configuration. Regular functions specify exactly one of route, model, cron, or action.
+ * Workflows use `kind: "workflow"` with a class entrypoint instead.
  */
 type SwellConfig = SwellFunctionConfig | SwellWorkflowConfig;
 
@@ -22,7 +23,7 @@ interface SwellFunctionConfig {
   model?: {
     /**
      * * async: `review.created`;
-     * * hook: `before:review.created` / `after:review.created`
+     * * hook: `before:review.created` / `after:review.created`, or `apps/<app_id>/reviews/before:review.created` (fully qualified for app-own models)
      */
     events: [string, ...string[]];
     /** MongoDB-style filter; may reference `$record`, `$data`, `$event`, `$settings`, `$formula` */
@@ -41,8 +42,9 @@ interface SwellFunctionConfig {
     schedule: string;
   };
   /**
-   * Run by app actions in the Swell admin that name this function. Receives `req.data.$action` (see `SwellActionContext`);
-   * return `{ message }` to show it to the admin user. Actions wait for the result, so keep them within `timeout`;
+   * Run by app actions that name this function: settings `actions`, content view `actions`/`extra_actions`/`bulk_actions`, and `type: "action"` fields.
+   * Receives `req.data.$action` (see `SwellActionContext`) plus the action's modal field values; return `{ message }` to show it to the admin user.
+   * Only admin users can run actions: `$call` and the storefront function gateway refuse action functions. The admin waits for the result, so keep runs within `timeout`;
    * for longer work, name a workflow that sets `action` instead (see `SwellWorkflowConfig`).
    * Set `action: true`; the object form is for options the trigger may get later.
    */
@@ -51,6 +53,11 @@ interface SwellFunctionConfig {
   timeout?: number;
 }
 
+/**
+ * Workflow declaration.
+ * The file default-exports a class with `run(req, step)` instead of a handler function.
+ * Workflows run only after `swell app push`: they do not execute under `swell app dev`.
+ */
 interface SwellWorkflowConfig {
   kind: "workflow";
   description?: string;
@@ -58,8 +65,10 @@ interface SwellWorkflowConfig {
   model?: never;
   cron?: never;
   /**
-   * Run by app actions in the Swell admin that name this workflow. Each action starts a run and returns right away;
+   * Run by app actions that name this workflow. Each action starts a run and returns right away;
    * the run gets the action's `modal.fields` values and `$action` (see `SwellActionContext`) in `req.data`, and `req.workflow.trigger` is `"action"`.
+   * `req.data` has the same 128 KB limit as `workflows.create()` params, so a bulk action on a few thousand selected ids fails with `workflow_params_too_large`.
+   * Under `swell app dev`, actions start the pushed version of the workflow.
    * Set `action: true`; the object form is for options the trigger may get later.
    */
   action?: true | Record<string, never>;
@@ -96,6 +105,33 @@ interface SwellContext {
   surface?: "admin" | "checkout" | "storefront";
 }
 
+/** Event metadata attached to `req.data` for model triggers */
+interface SwellEvent {
+  /** Event id. Absent on synchronous hook invocations. */
+  id?: string;
+  /** e.g. `review.created` */
+  type: string;
+  /** e.g. `reviews` or `apps/<app_id>/reviews` */
+  model: string;
+  app_id?: string;
+  /** present only on synchronous hook invocations */
+  hook?: "before" | "after";
+  /**
+   * Record data of the event, absent on synchronous hook invocations:
+   * * `created`/`deleted`: full record snapshot;
+   * * `updated`: changed fields only;
+   * * custom: the subset declared in the model event's `fields`
+   */
+  data?: Record<string, any>;
+  /** Event delivery state. Absent on synchronous hook invocations. */
+  delivery?: {
+    /** The number of attempts to send the event to the function (`0` on first delivery, increments on each retry) */
+    attempts: number;
+    /** The date of the first failure to send the event to the function */
+    date_first_failed?: string;
+  };
+}
+
 /** Request context available in all function handlers */
 declare class SwellRequest {
   originalRequest: Request;
@@ -128,8 +164,8 @@ declare class SwellRequest {
   publicKey?: string | null;
   store: SwellStore;
   app: SwellApp;
-  /** authenticated user (routes) */
-  session?: { account_id?: string; [key: string]: any };
+  /** the shopper's session on a route called through the storefront address, `{}` when no shopper is signed in; on other calls null, unless the caller sends its own `Swell-Session` header */
+  session?: { account_id?: string; [key: string]: any } | null;
   /**
    * Set when one of this app's components made the call, otherwise null.
    * Route functions called with it do not need `route.public`. Use
@@ -143,11 +179,17 @@ declare class SwellRequest {
   isLocalDev: boolean;
   /** authenticated platform client */
   swell: SwellAPI;
-  /** Parsed JSON body as object, or raw text string when body isn't JSON. */
+  /** Parsed JSON body as object, or raw text string when body isn't JSON. model events and hooks: the same object as `data`. cron: empty `{}`. */
   body: SwellData | string;
-  // Raw request body text, untouched by parsing.
-  // Use on route triggers for HMAC/webhook signature verification — re-stringifying `body` won't byte-match the original.
+  /**
+   * Request body text. On a route called through the storefront gateway with a JSON body, this is the exact text the caller sent,
+   * so verify HMAC/webhook signatures against it: re-stringifying `body` won't byte-match. Other bodies (form-encoded, `swell api`, model events) arrive re-serialized as JSON.
+   */
   rawBody: string;
+  /**
+   * Trigger payload. model events: the record as stored + `$event`. hooks: the values the write sets (the record on a delete) + `$event`, and `$record` with the record before an update. cron: empty. route: body and query, query keys overwrite body keys. action: modal field values + `$action`.
+   * When body/query precedence matters (e.g. security-sensitive handlers), use `req.body` and `req.query` directly.
+   */
   data: SwellData;
   /** URL query parameters (routes) */
   query: { [key: string]: string };
@@ -182,6 +224,11 @@ declare class SwellRequest {
 
 type SwellRequestMethod = "get" | "put" | "post" | "delete";
 
+/**
+ * Model triggers also get `$event` (see `SwellEvent`, e.g. `req.data.$event as SwellEvent`), and
+ * `before:updated` / `after:updated` hooks get `$record`, the record before the write (absent on
+ * create and delete, so check with `if (!$record)`). Both are untyped here.
+ */
 interface SwellData {
   /** set when an admin user runs an app action (`action` functions) */
   $action?: SwellActionContext;
@@ -194,9 +241,8 @@ interface SwellSettings {
 
 /**
  * Sent as `req.data.$action` when an admin user runs an app action: to `action` functions, and to the workflow runs that actions start.
- * The platform sets `id`, `source`, `collection`/`settings` and `user_id` from the installed app's action declaration and the signed-in user.
- * `record_id` and `selection` come from the admin user's request, so treat them as input: check that ids are record ids (e.g. `/^[0-9a-f]{24}$/i`) before using them in a URL path,
- * and load the record from `collection` before acting on it.
+ * The platform checks it against the installed app's action declaration: it sets `id`, `source`, `collection`/`settings` and `user_id`
+ * from the declaration and the signed-in user, and refuses a `record_id` that is not a record of `collection`. `selection` is what the admin user selected.
  * Values entered in the action's `modal.fields` arrive at the top level of `req.data`.
  */
 interface SwellActionContext {
@@ -246,6 +292,7 @@ declare class SwellAPI {
     data?: any,
   ): Promise<any>;
 
+  /** A read of an id that does not exist resolves empty, so test `if (!record)` */
   get(url: string, query?: any): Promise<any>;
 
   put(url: string, data: any): Promise<any>;
@@ -275,7 +322,13 @@ declare class SwellAPI {
   workflows: SwellWorkflowsAPI;
 }
 
+/** Start workflow instances from app functions. */
 interface SwellWorkflowsAPI {
+  /**
+   * Start a workflow instance by name. `params` are passed through as `req.data` inside the workflow, less a `$action` key;
+   * they must be JSON-serializable and at most 128 KB: invalid params reject with `workflow_params_unserializable` or
+   * `workflow_params_too_large` before any instance is created.
+   */
   create(
     workflowName: string,
     params?: unknown,
@@ -287,6 +340,7 @@ interface SwellWorkflowCreateResult {
   status: "active";
 }
 
+/** Request context passed to a workflow's `run(req, step)` */
 interface SwellWorkflowRequest {
   id: string;
   appId: string;
@@ -300,7 +354,7 @@ interface SwellWorkflowRequest {
   app: SwellApp;
   /**
    * params passed to `workflows.create()`; for runs started by an app action, the action's `modal.fields` values and `$action` (see `SwellActionContext`).
-   * Functions can pass any params to `workflows.create()`, including `$action`, so only trust `$action` when `workflow.trigger` is `"action"`.
+   * Only a run that an action starts has `$action`.
    */
   data: unknown;
   workflow: {
@@ -311,18 +365,35 @@ interface SwellWorkflowRequest {
     trigger: "function" | "action";
     request_id: string;
   };
+  /** workflows never run under `swell app dev` */
   isLocalDev: false;
   swell: SwellWorkflowAPI;
+
+  /**
+   * Wrap values for the $app namespace when writing to standard model extensions.
+   * Returns `{ $app: { [appId]: values } }`. Pass `appId` as the first argument to target another app.
+   * @throws if values is not a plain object (arrays, class instances, null, and primitives are rejected)
+   */
+  appValues(values: object): { $app: { [appId: string]: object } };
+  appValues(
+    appId: string,
+    values: object,
+  ): { $app: { [appId: string]: object } };
 }
 
+/**
+ * Platform client inside a workflow: a narrower surface than a function's, and a write refused by
+ * validation resolves with `{ errors }` instead of throwing
+ */
 interface SwellWorkflowAPI {
-  get(path: string, data?: unknown): Promise<unknown>;
-  post(path: string, data?: unknown): Promise<unknown>;
-  put(path: string, data?: unknown): Promise<unknown>;
-  delete(path: string, data?: unknown): Promise<unknown>;
+  get<T = unknown>(path: string, data?: unknown): Promise<T>;
+  post<T = unknown>(path: string, data?: unknown): Promise<T>;
+  put<T = unknown>(path: string, data?: unknown): Promise<T>;
+  delete<T = unknown>(path: string, data?: unknown): Promise<T>;
   settings(): Promise<SwellSettings>;
 }
 
+/** Durable step runner. Each `step.do(name, fn)` executes once: its result is recorded and not re-run on retry. */
 interface SwellWorkflowStep {
   do<T>(
     name: string,
@@ -332,6 +403,7 @@ interface SwellWorkflowStep {
 
   do<T>(name: string, callback: () => Promise<T>): Promise<T>;
 
+  /** e.g. `"30 seconds"`; pauses without holding compute */
   sleep(name: string, duration: string | number): Promise<void>;
 
   sleepUntil(name: string, date: Date | string | number): Promise<void>;

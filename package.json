@@ -8,5 +8,14 @@
     "url": "https://github.com/swellstores/app-types"
   },
   "license": "MIT",
-  "types": "index.d.ts"
+  "types": "index.d.ts",
+  "files": [
+    "index.d.ts",
+    "index.ts"
+  ],
+  "scripts": {
+    "build": "node scripts/build-index.mjs",
+    "check": "node scripts/build-index.mjs --check",
+    "prepack": "npm run build"
+  }
 }

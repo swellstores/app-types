@@ -76,6 +76,8 @@ interface SwellStore {
 interface SwellApp {
   /** the app's page in the dashboard, in the environment of the request */
   admin_url: string;
+  /** the address of the app's installation in the environment of the request, where its frontend, if it has one, and its components are served */
+  frontend_url: string;
 }
 
 /**

@@ -202,11 +202,11 @@ interface SwellActionContext {
   id: string;
   /** `settings`: a settings file's `actions`; `field`: a `type: "action"` field; `list`/`record`: a content view's `actions` or `extra_actions`; `bulk`: a list view's `bulk_actions` */
   source: "settings" | "field" | "list" | "record" | "bulk";
-  /** collection of the content model that declares the action (e.g. `products`, or `apps/<app_id>/<name>` for app-owned collections); set unless the action is declared in a settings file */
+  /** collection of the records the content model that declares the action shows (e.g. `products`, `apps/<app_id>/<name>` for app-owned collections, or `products:variants` for content of a child collection); set unless the action is declared in a settings file */
   collection?: string;
   /** name of the settings file that declares the action; set for settings actions and settings action fields */
   settings?: string;
-  /** record the action ran on; set for record actions and for action fields in content files. From the admin user's request: validate it before using it in a URL path, and load the record from `collection` before acting on it */
+  /** id of the record of `collection` the action ran on, which the platform checks; set for record actions and for action fields in content files */
   record_id?: string;
   /** records selected in the list; set for bulk actions. From the admin user's request: treat the ids and query as input */
   selection?: {

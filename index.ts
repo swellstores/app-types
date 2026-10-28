@@ -382,8 +382,9 @@ export interface SwellWorkflowRequest {
 }
 
 /**
- * Platform client inside a workflow: a narrower surface than a function's, and a write refused by
- * validation resolves with `{ errors }` instead of throwing
+ * Platform client inside a workflow: a narrower surface than a function's. A write refused by
+ * validation throws an error whose `status` (400) and `body` (the field errors) are those a
+ * function's gets, though not its class or message, and its step is not retried
  */
 export interface SwellWorkflowAPI {
   get<T = unknown>(path: string, data?: unknown): Promise<T>;

@@ -182,8 +182,9 @@ export declare class SwellRequest {
   /** Parsed JSON body as object, or raw text string when body isn't JSON. model events and hooks: the same object as `data`. cron: empty `{}`. */
   body: SwellData | string;
   /**
-   * Request body text. On a route called through the storefront gateway with a JSON body, this is the exact text the caller sent,
-   * so verify HMAC/webhook signatures against it: re-stringifying `body` won't byte-match. Other bodies (form-encoded, `swell api`, model events) arrive re-serialized as JSON.
+   * Request body text. On a route called through the storefront gateway, this is the exact body the caller sent (JSON, XML, text…), decoded as UTF-8
+   * without a leading byte order mark, so verify HMAC/webhook signatures against it: re-stringifying `body` won't byte-match.
+   * `application/x-www-form-urlencoded` bodies, `swell api` calls and model events arrive re-serialized as JSON.
    */
   rawBody: string;
   /**
@@ -382,8 +383,9 @@ export interface SwellWorkflowRequest {
 }
 
 /**
- * Platform client inside a workflow: a narrower surface than a function's, and a write refused by
- * validation resolves with `{ errors }` instead of throwing
+ * Platform client inside a workflow: a narrower surface than a function's. A write refused by
+ * validation throws an error whose `status` (400) and `body` (the field errors) are those a
+ * function's gets, though not its class or message, and its step is not retried
  */
 export interface SwellWorkflowAPI {
   get<T = unknown>(path: string, data?: unknown): Promise<T>;

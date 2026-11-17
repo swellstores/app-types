@@ -271,6 +271,8 @@ interface SwellOAuthCallback {
   data: unknown;
   /** The callback function's name */
   name: string | null;
+  /** The `redirect_uri` sent to the provider (`start()`'s `redirectUri`), for the token request */
+  redirectUri: string | null;
 }
 
 type SwellRequestMethod = "get" | "put" | "post" | "delete";

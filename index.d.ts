@@ -233,6 +233,13 @@ type SwellRequestMethod = "get" | "put" | "post" | "delete";
 interface SwellData {
   /** set when an admin user runs an app action (`action` functions) */
   $action?: SwellActionContext;
+  /**
+   * Set for the functions of a channel app (`type: channel` in swell.json) on product events:
+   * whether the app's sales channel carries the product now, that is, it is active and in the
+   * channel by the channel's mode. `false` on `product.deleted`, and while the merchant hasn't
+   * chosen the mode. Absent for other apps' functions.
+   */
+  $in_channel?: boolean;
   [key: string]: any;
 }
 

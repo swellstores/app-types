@@ -265,14 +265,18 @@ interface SwellOAuthStart {
 }
 
 interface SwellOAuthCallback {
-  /** Every parameter the provider sent (query string or form post), as raw strings, such as `code` or `error` */
-  params: Readonly<Record<string, string>>;
+  /**
+   * Every parameter the provider sent (query string or form post), as raw
+   * strings. Which ones depends on the answer: `code` on success, `error`
+   * when the merchant cancels.
+   */
+  params: Readonly<Record<string, string | undefined>>;
   /** The `data` passed to `start()` */
   data: unknown;
   /** The callback function's name */
-  name: string | null;
+  name: string;
   /** The `redirect_uri` sent to the provider (`start()`'s `redirectUri`), for the token request */
-  redirectUri: string | null;
+  redirectUri: string;
 }
 
 type SwellRequestMethod = "get" | "put" | "post" | "delete";

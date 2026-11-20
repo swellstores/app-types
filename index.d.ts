@@ -244,6 +244,13 @@ interface SwellData {
 }
 
 interface SwellSettings {
+  /**
+   * Set by the platform in the settings of a channel app (`type: channel` in swell.json), read only:
+   * the mode of its sales channel, which the merchant chooses. `"all"` carries every active product
+   * the merchant hasn't left out, `"selected"` only the products the merchant adds, `null` none
+   * until the merchant chooses. A write of it is ignored. Absent in other apps' settings.
+   */
+  sales_channel?: { mode: "all" | "selected" | null };
   [key: string]: any;
 }
 

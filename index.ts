@@ -243,9 +243,25 @@ export interface SwellOAuth {
   start(options: SwellOAuthStartOptions): Promise<SwellOAuthStart>;
   /**
    * Set only on the call Swell's relay makes to the callback function after
-   * the provider's redirect, otherwise null: a caller can't fake it.
+   * the provider's redirect, otherwise null: no call through Swell can set it.
+   * A request sent straight to the function's worker can, but without the
+   * app's real secrets or token, so trust `params` and `data` only once the
+   * provider has accepted the code exchange. The callback answers
+   * `SwellOAuthCallbackResult`; one that throws or answers 400 or more shows
+   * the merchant an error page with a link back to the app.
    */
   callback: SwellOAuthCallback | null;
+}
+
+/** What the callback function answers on the relay's call */
+export interface SwellOAuthCallbackResult {
+  /**
+   * Where the merchant's window goes next: the app's page in the dashboard
+   * (`req.app.admin_url`, or a path or query under it, such as
+   * `?tab=settings`) or the app's frontend in that store. Any other URL, or
+   * none, opens the app's dashboard page.
+   */
+  redirect?: string;
 }
 
 export interface SwellOAuthStartOptions {

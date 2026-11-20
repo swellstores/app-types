@@ -10,6 +10,10 @@ npm install @swell/app-types -D
 yarn add @swell/app-types -D
 ```
 
+Functions using `req.appSecrets` or `req.oauth` require `@swell/app-types` 1.4.0 or later.
+If your app already has this dependency, update it there too. `swell schema function --format=dts`
+uses the app's installed version first.
+
 ## Usage
 
 The following is a minimal `tsconfig.json` for use alongside this package:

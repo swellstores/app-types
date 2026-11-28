@@ -312,10 +312,24 @@ type SwellRequestMethod = "get" | "put" | "post" | "delete";
 interface SwellData {
   /** set when an admin user runs an app action (`action` functions) */
   $action?: SwellActionContext;
+  /**
+   * Set for the functions of a channel app (`type: channel` in swell.json) on product events:
+   * whether the app's sales channel carries the product now, that is, it is active and in the
+   * channel by the channel's mode. `false` on `product.deleted`, and while the merchant hasn't
+   * chosen the mode. Absent for other apps' functions.
+   */
+  $in_channel?: boolean;
   [key: string]: any;
 }
 
 interface SwellSettings {
+  /**
+   * Set by the platform in the settings of a channel app (`type: channel` in swell.json), read only:
+   * the mode of its sales channel, which the merchant chooses. `"all"` carries every active product
+   * the merchant hasn't left out, `"selected"` only the products the merchant adds, `null` none
+   * until the merchant chooses. A write of it is ignored. Absent in other apps' settings.
+   */
+  sales_channel?: { mode: "all" | "selected" | null };
   [key: string]: any;
 }
 

@@ -40,6 +40,13 @@ interface SwellFunctionConfig {
   cron?: {
     /** cron expression, e.g. `0 0 * * *` */
     schedule: string;
+    /**
+     * MongoDB-style filter checked before each scheduled run; when it doesn't match, the run is skipped with no invocation or log.
+     * May reference `$settings` (the app's settings) and `$env` (`live` or `test`); `$formula` is not supported.
+     * Runs are always skipped while the app is switched off.
+     * @example { $settings: { connection: { enabled: true }, api_key: { $exists: true } } }
+     */
+    conditions?: object;
   };
   /**
    * Run by app actions that name this function: settings `actions`, content view `actions`/`extra_actions`/`bulk_actions`, and `type: "action"` fields.
